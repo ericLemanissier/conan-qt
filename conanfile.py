@@ -138,12 +138,20 @@ class QtConan(ConanFile):
         else:
             make = "make"        
 
+        install_root = self.package_folder.replace('\\', '/')
         with tools.environment_append({"MAKEFLAGS":"-j %d" % tools.cpu_count()}):
-            self.run("{0}{1} && {1} install".format(prepare_env, make))
+            self.run("{0}{1} && {1} install INSTALL_ROOT={2}".format(prepare_env, make, (install_root[2:] if self.settings.os == "Windows" else install_root)))
+        
+        if self.name == "qtbase":
+            with open('bin/qt.conf', 'w') as f: 
+                f.write('[Paths]\nPrefix = ..')
+        
+    def package(self):
+        self.copy("bin/qt.conf")
+            
 
     def configureQtBase(self):
-        args = ["-opensource", "-confirm-license", "-nomake examples", "-nomake tests",
-                "-prefix %s" % self.package_folder]
+        args = ["-opensource", "-confirm-license", "-nomake examples", "-nomake tests", "-prefix /"]
         if not self.options.shared:
             args.insert(0, "-static")
             if self.settings.os == "Windows":
@@ -211,3 +219,6 @@ class QtConan(ConanFile):
         if self.settings.os == "Windows":
             self.env_info.path.append(os.path.join(self.package_folder, "bin"))
         self.env_info.CMAKE_PREFIX_PATH.append(self.package_folder)
+        self.env_info.QMAKEMODULES.append(self.package_folder + "\mkspecs\modules")
+        #self.env_info.QMAKEFEATURES.append((self.package_folder + "/mkspecs/features/").replace('/', '\\'))
+        #self.env_info.QMAKEPATH.append(self.package_folder.replace('/', '\\'))
