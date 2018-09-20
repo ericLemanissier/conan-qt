@@ -8,6 +8,16 @@ import configparser
 
 class QtConan(ConanFile):
 
+    def merge_dicts(*dict_args):
+        """
+        Given any number of dicts, shallow copy and merge into a new dict,
+        precedence goes to key value pairs in latter dicts.
+        """
+        result = {}
+        for dictionary in dict_args:
+            result.update(dictionary)
+        return result
+
     def getsubmodules():
         config = configparser.ConfigParser()
         config.read('qtmodules.conf')
@@ -27,6 +37,21 @@ class QtConan(ConanFile):
                     res[modulename]["depends"] = []
         return res
     submodules = getsubmodules()
+    
+    def get3rdpartyLibs():
+        libs = {}
+        libs["libjpeg"] = {"pkgRef":"libjpeg/9c@bincrafters/stable", "QtOption":"libjpeg"}
+        #libs["libpng"] = {"pkgRef":"libpng/1.6.34@bincrafters/stable", "QtOption":"libpng"}
+        libs["zlib"] = {"pkgRef":"zlib/1.2.11@conan/stable", "QtOption":"zlib"}
+        libs["harfbuzz"] = {"pkgRef":"harfbuzz/1.7.6@bincrafters/stable", "QtOption":"harfbuzz"}
+        #libs["freetype"] = {"pkgRef":"freetype/2.9.0@bincrafters/stable", "QtOption":"freetype"}
+        #libs["sqlite3"] = {"pkgRef":"sqlite3/3.21.0@bincrafters/stable", "QtOption":"sqlite"}
+        #libs["pcre2"] = {"pkgRef":"pcre2/10.31@bincrafters/stable", "QtOption":"pcre"}
+        libs["double-conversion"] = {"pkgRef":"double-conversion/3.0.0@bincrafters/stable", "QtOption":"doubleconversion"}
+        for lib in libs:
+            assert libs[lib]["pkgRef"].startswith(lib)
+        return libs
+    _3rdPartyLibs = get3rdpartyLibs()
 
     name = "Qt"
     version = "5.11.1"
@@ -38,17 +63,18 @@ class QtConan(ConanFile):
     exports = ["LICENSE.md", "qtmodules.conf", "*.diff"]
     settings = "os", "arch", "compiler", "build_type"
 
-    options = dict({
+    options = merge_dicts({
         "shared": [True, False],
         "opengl": ["no", "es2", "desktop", "dynamic"],
         "openssl": [True, False],
         "GUI": [True, False],
         "widgets": [True, False],
         "config": "ANY",
-        }, **{module: [True,False] for module in submodules}
+        }, {module: [True,False] for module in submodules},
+        {lib: [True,False] for lib in _3rdPartyLibs}
     )
     no_copy_source = True
-    default_options = ("shared=True", "opengl=desktop", "openssl=False", "GUI=True", "widgets=True", "config=None") + tuple(module + "=False" for module in submodules)
+    default_options = ("shared=True", "opengl=desktop", "openssl=False", "GUI=True", "widgets=True", "config=None") + tuple(module + "=False" for module in submodules) + tuple(lib + "=True" for lib in _3rdPartyLibs)
     short_paths = True
     build_policy = "missing"
 
@@ -69,15 +95,24 @@ class QtConan(ConanFile):
 
         if tools.os_info.is_windows and self.settings.compiler == "Visual Studio":
             self.build_requires("jom_installer/1.1.2@bincrafters/stable")
+    
+    def config_options(self):    
+        if self.settings.compiler == "Visual Studio":
+            del self.options.zlib
+            del QtConan._3rdPartyLibs["zlib"]
 
     def configure(self):
-        if self.options.openssl:
-            self.requires("OpenSSL/1.1.0g@conan/stable")
-            self.options["OpenSSL"].no_zlib = True
         if self.options.widgets == True:
             self.options.GUI = True
         if not self.options.GUI:
             self.options.opengl = "no"
+            self.options.libjpeg = False
+            #self.options.libpng = False
+            self.options.harfbuzz = False
+            #self.options.freetype = False
+            
+        #if self.options.pcre2:
+        #    self.options.zlib = True
         if self.settings.os == "Android" and self.options.opengl == "desktop":
             self.output.error("OpenGL desktop is not supported on Android. Consider using OpenGL es2")
 
@@ -90,6 +125,25 @@ class QtConan(ConanFile):
         for module in QtConan.submodules:
             if getattr(self.options, module):
                 enablemodule(self, module)
+                
+    def requirements(self):
+        if self.options.openssl:
+            self.requires("OpenSSL/1.1.0g@conan/stable")
+            self.options["OpenSSL"].no_zlib = True
+            
+        libs = QtConan._3rdPartyLibs
+        for lib in libs:
+            if getattr(self.options, lib):
+                self.requires(libs[lib]["pkgRef"])
+        #if self.options.libpng:
+        #    self.options["libpng"].shared = True
+        
+        #if self.options.harfbuzz:
+        #    self.options["harfbuzz"].with_freetype = self.options.freetype
+        #if self.options.freetype:
+        #    self.options["freetype"].with_png = self.options.libpng
+        #    self.options["freetype"].with_zlib = self.options.zlib
+        
 
     def system_requirements(self):
         if self.options.GUI:
@@ -263,7 +317,14 @@ class QtConan(ConanFile):
         if self.options.config:
             args.append(str(self.options.config))
 
-        args.append("-qt-zlib")
+        libs = QtConan._3rdPartyLibs
+        for lib in libs: 
+            if lib in self.deps_cpp_info.deps:
+                args.append("-system-%s" %  libs[lib]["QtOption"])
+                args.extend("-I %s" % i for i in self.deps_cpp_info[lib].include_paths)
+                args.extend("-L %s" % i for i in self.deps_cpp_info[lib].lib_paths)
+            else:
+                args.append("-no-%s" % libs[lib]["QtOption"])
 
         def _build(self, make, args):
             with tools.environment_append({"MAKEFLAGS":"j%d" % tools.cpu_count()}):
