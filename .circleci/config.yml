@@ -1,96 +1,232 @@
 version: 2
 .conan-steps: &conan-steps
+  docker:
+    - image: circleci/python:3.7
+      environment:
+        - CONAN_CLANG_VERSIONS: 8
+        - CONAN_BUILD_REQUIRES: android_ndk_installer/r20@bincrafters/stable,android-sdk/26.1.1@tereius/stable
+        - CONAN_REMOTES: https://api.bintray.com/conan/tereius/public-conan@True@tereius
+        - CONAN_OPTIONS: "qt:openssl=False,qt:opengl=es2,qt:with_harfbuzz=False,qt:with_pq=False,qt:with_mysql=False,qt:with_pcre2=False,qt:with_glib=False,qt:with_libjpeg=False,qt:with_libpng=False,qt:with_odbc=False,qt:with_sdl2=False,qt:with_libalsa=False,qt:with_openal=False"
   parallelism: 4
   steps:
     - checkout
     - run:
+        name: Install CMAKE
+        command: 'sudo apt-get update && sudo apt-get install -y cmake'
+    - run:
+        name: Install java
+        command: 'sudo apt-get install default-jdk'
+    - run:
         name: Update Conan package
         command: |
           chmod +x .ci/install.sh
-          .ci/install.sh
+          sudo .ci/install.sh
     - run:
         name: Build recipe
         command: |
           export CONAN_CURRENT_PAGE=$((${CIRCLE_NODE_INDEX}+1))
-          export CONAN_TOTAL_PAGES=${CIRCLE_NODE_TOTAL}
+          export CONAN_TOTAL_PAGES=2
           chmod +x .ci/run.sh
           .ci/run.sh
 
 jobs:
-  gcc-49:
-    docker:
-      - image: conanio/gcc49
-    environment:
-      - CONAN_GCC_VERSIONS: "4.9"
-    <<: *conan-steps
+      android-x86-21:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 21
+        <<: *conan-steps
 
-  gcc-5:
-    docker:
-      - image: conanio/gcc5
-    environment:
-      - CONAN_GCC_VERSIONS: "5"
-    <<: *conan-steps
+      android-x86_64-21:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 21
+        <<: *conan-steps
 
-  gcc-6:
-    docker:
-      - image: conanio/gcc6
-    environment:
-      - CONAN_GCC_VERSIONS: "6"
-    <<: *conan-steps
+      android-armv7-21:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 21
+        <<: *conan-steps
 
-  gcc-7:
-    docker:
-      - image: conanio/gcc7
-    environment:
-      - CONAN_GCC_VERSIONS: "7"
-    <<: *conan-steps
+      android-armv8-21:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 21
+        <<: *conan-steps
 
-  gcc-8:
-    docker:
-      - image: conanio/gcc8
-    environment:
-      - CONAN_GCC_VERSIONS: "8"
-    <<: *conan-steps
+      android-x86-22:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 22
+        <<: *conan-steps
 
-  clang-39:
-    docker:
-      - image: conanio/clang39
-    environment:
-      - CONAN_CLANG_VERSIONS: "3.9"
-    <<: *conan-steps
+      android-x86_64-22:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 22
+        <<: *conan-steps
 
-  clang-40:
-    docker:
-      - image: conanio/clang40
-    environment:
-      - CONAN_CLANG_VERSIONS: "4.0"
-    <<: *conan-steps
+      android-armv7-22:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 22
+        <<: *conan-steps
 
-  clang-50:
-    docker:
-      - image: conanio/clang50
-    environment:
-      - CONAN_CLANG_VERSIONS: "5.0"
-    <<: *conan-steps
+      android-armv8-22:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 22
+        <<: *conan-steps
 
-  clang-60:
-    docker:
-      - image: conanio/clang60
-    environment:
-      - CONAN_CLANG_VERSIONS: "6.0"
-    <<: *conan-steps
+      android-x86-23:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 23
+        <<: *conan-steps
 
+      android-x86_64-23:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 23
+        <<: *conan-steps
+
+      android-armv7-23:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 23
+        <<: *conan-steps
+
+      android-armv8-23:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 23
+        <<: *conan-steps
+
+      android-x86-24:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 24
+        <<: *conan-steps
+
+      android-x86_64-24:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 24
+        <<: *conan-steps
+
+      android-armv7-24:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 24
+        <<: *conan-steps
+
+      android-armv8-24:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 24
+        <<: *conan-steps
+
+      android-x86-26:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 26
+        <<: *conan-steps
+
+      android-x86_64-26:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 26
+        <<: *conan-steps
+
+      android-armv7-26:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 26
+        <<: *conan-steps
+
+      android-armv8-26:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 26
+        <<: *conan-steps
+
+      android-x86-27:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 27
+        <<: *conan-steps
+
+      android-x86_64-27:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 27
+        <<: *conan-steps
+
+      android-armv7-27:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 27
+        <<: *conan-steps
+
+      android-armv8-27:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 27
+        <<: *conan-steps
+
+      android-x86-28:
+        environment:
+          - CONAN_ARCHS: x86
+          - ANDROID_API_LEVEL: 28
+        <<: *conan-steps
+
+      android-x86_64-28:
+        environment:
+          - CONAN_ARCHS: x86_64
+          - ANDROID_API_LEVEL: 28
+        <<: *conan-steps
+
+      android-armv7-28:
+        environment:
+          - CONAN_ARCHS: armv7
+          - ANDROID_API_LEVEL: 28
+        <<: *conan-steps
+
+      android-armv8-28:
+        environment:
+          - CONAN_ARCHS: armv8
+          - ANDROID_API_LEVEL: 28
+        <<: *conan-steps
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - gcc-49
-      - gcc-5
-      - gcc-6
-      - gcc-7
-      - gcc-8
-      - clang-39
-      - clang-40
-      - clang-50
-      - clang-60
+      - android-x86-21
+      - android-x86_64-21
+      - android-armv7-21
+      - android-armv8-21
+      - android-x86-22
+      - android-x86_64-22
+      - android-armv7-22
+      - android-armv8-22
+      - android-x86-23
+      - android-x86_64-23
+      - android-armv7-23
+      - android-armv8-23
+      - android-x86-24
+      - android-x86_64-24
+      - android-armv7-24
+      - android-armv8-24
+      - android-x86-26
+      - android-x86_64-26
+      - android-armv7-26
+      - android-armv8-26
+      - android-x86-27
+      - android-x86_64-27
+      - android-armv7-27
+      - android-armv8-27
+      - android-x86-28
+      - android-x86_64-28
+      - android-armv7-28
+      - android-armv8-28

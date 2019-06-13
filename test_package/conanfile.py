@@ -78,7 +78,7 @@ class TestPackageConan(ConanFile):
         if not self.options["qt"].shared:
             self.output.info(
                 "disabled cmake test with static Qt, because of https://bugreports.qt.io/browse/QTBUG-38913")
-        else:
+        elif self.settings.os != "Android":
             self.output.info("Building with CMake")
             env_build = RunEnvironment(self)
             with tools.environment_append(env_build.vars):
@@ -109,14 +109,14 @@ class TestPackageConan(ConanFile):
         if not self.options["qt"].shared:
             self.output.info(
                 "disabled cmake test with static Qt, because of https://bugreports.qt.io/browse/QTBUG-38913")
-        else:
+        elif self.settings.os != "Android":
             self.output.info("Testing CMake")
             shutil.copy("qt.conf", "cmake_folder")
             self.run(os.path.join("cmake_folder", "test_package"), run_environment=True)
 
     def test(self):
         if (not tools.cross_building(self.settings)) or\
-                (self.settings.os_build == self.settings.os and self.settings.arch_build == "x86_64" and self.settings.arch == "x86"):
+                (str(self.settings.os_build) == str(self.settings.os) and self.settings.arch_build == "x86_64" and self.settings.arch == "x86"):
             self._test_with_qmake()
             self._test_with_meson()
             self._test_with_cmake()

@@ -16,97 +16,93 @@ jobs:
     env:
       CONAN_LOGIN_USERNAME: $(CONAN_LOGIN_USERNAME)
       CONAN_PASSWORD: $(CONAN_PASSWORD)
+      CONAN_BUILD_REQUIRES: android_ndk_installer/r20@bincrafters/stable,android-sdk/26.1.1@tereius/stable
+      CONAN_REMOTES: https://api.bintray.com/conan/tereius/public-conan@True@tereius
+      CONAN_OPTIONS: "qt:openssl=False,qt:opengl=es2,qt:with_harfbuzz=False,qt:with_pq=False,qt:with_mysql=False,qt:with_pcre2=False,qt:with_glib=False,qt:with_libjpeg=False,qt:with_libpng=False,qt:with_odbc=False,qt:with_sdl2=False,qt:with_libalsa=False,qt:with_openal=False,qt:with_sqlite3=False"
+      CONAN_CLANG_VERSIONS: 8
   strategy:
     matrix:
-      Gcc 4.9 x86:
-        CONAN_GCC_VERSIONS: 4.9
-        CONAN_DOCKER_IMAGE: conanio/gcc49
-        CONAN_ARCHS: "x86"
-      Gcc 4.9 x86_64:
-        CONAN_GCC_VERSIONS: 4.9
-        CONAN_DOCKER_IMAGE: conanio/gcc49
-        CONAN_ARCHS: "x86_64"
-      Gcc 5 x86:
-        CONAN_GCC_VERSIONS: 5
-        CONAN_DOCKER_IMAGE: conanio/gcc5
-        CONAN_ARCHS: "x86"
-      Gcc 5 x86_64:
-        CONAN_GCC_VERSIONS: 5
-        CONAN_DOCKER_IMAGE: conanio/gcc5
-        CONAN_ARCHS: "x86_64"
-      Gcc 6 x86:
-        CONAN_GCC_VERSIONS: 6
-        CONAN_DOCKER_IMAGE: conanio/gcc6
-        CONAN_ARCHS: "x86"
-      Gcc 6 x86_64:
-        CONAN_GCC_VERSIONS: 6
-        CONAN_DOCKER_IMAGE: conanio/gcc6
-        CONAN_ARCHS: "x86_64"
-      Gcc 7 x86:
-        CONAN_GCC_VERSIONS: 7
-        CONAN_DOCKER_IMAGE: conanio/gcc7
-        CONAN_ARCHS: "x86"
-      Gcc 7 x86_64:
-        CONAN_GCC_VERSIONS: 7
-        CONAN_DOCKER_IMAGE: conanio/gcc7
-        CONAN_ARCHS: "x86_64"
-      Gcc 8 x86:
-        CONAN_GCC_VERSIONS: 8
-        CONAN_DOCKER_IMAGE: conanio/gcc8
-        CONAN_ARCHS: "x86"
-      Gcc 8 x86_64:
-        CONAN_GCC_VERSIONS: 8
-        CONAN_DOCKER_IMAGE: conanio/gcc8
-        CONAN_ARCHS: "x86_64"
-      Clang 3.9 x86:
-        CONAN_CLANG_VERSIONS: 3.9
-        CONAN_DOCKER_IMAGE: conanio/clang39
-        CONAN_ARCHS: "x86"
-      Clang 3.9 x86_64:
-        CONAN_CLANG_VERSIONS: 3.9
-        CONAN_DOCKER_IMAGE: conanio/clang39
-        CONAN_ARCHS: "x86_64"
-      Clang 4.0 x86:
-        CONAN_CLANG_VERSIONS: 4.0
-        CONAN_DOCKER_IMAGE: conanio/clang40
-        CONAN_ARCHS: "x86"
-      Clang 4.0 x86_64:
-        CONAN_CLANG_VERSIONS: 4.0
-        CONAN_DOCKER_IMAGE: conanio/clang40
-        CONAN_ARCHS: "x86_64"
-      Clang 5.0 x86:
-        CONAN_CLANG_VERSIONS: 5.0
-        CONAN_DOCKER_IMAGE: conanio/clang50
-        CONAN_ARCHS: "x86"
-      Clang 5.0 x86_64:
-        CONAN_CLANG_VERSIONS: 5.0
-        CONAN_DOCKER_IMAGE: conanio/clang50
-        CONAN_ARCHS: "x86_64"
-      Clang 6.0 x86:
-        CONAN_CLANG_VERSIONS: 6.0
-        CONAN_DOCKER_IMAGE: conanio/clang60
-        CONAN_ARCHS: "x86"
-      Clang 6.0 x86_64:
-        CONAN_CLANG_VERSIONS: 6.0
-        CONAN_DOCKER_IMAGE: conanio/clang60
-        CONAN_ARCHS: "x86_64"
-- job: macOS
-  pool:
-    vmImage: "macOS-10.13"
-  timeoutInMinutes: 120
-  steps:
-  - script: |
-      /bin/bash -c "sudo xcode-select -s /Applications/Xcode_$(XCODE_VERSION).app/Contents/Developer"
-      pip install --upgrade pip
-      chmod +x .ci/install.sh
-      ./.ci/install.sh
-      chmod +x .ci/run.sh
-      ./.ci/run.sh
-    env:
-      CONAN_LOGIN_USERNAME: $(CONAN_LOGIN_USERNAME)
-      CONAN_PASSWORD: $(CONAN_PASSWORD)
-  strategy:
-    matrix:
-      Clang 10.0:
-        CONAN_APPLE_CLANG_VERSIONS: 10.0
-        XCODE_VERSION: 10
+      android x86 21:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 21
+      android x86_64 21:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 21
+      android armv7 21:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 21
+      android armv8 21:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 21
+      android x86 22:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 22
+      android x86_64 22:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 22
+      android armv7 22:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 22
+      android armv8 22:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 22
+      android x86 23:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 23
+      android x86_64 23:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 23
+      android armv7 23:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 23
+      android armv8 23:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 23
+      android x86 24:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 24
+      android x86_64 24:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 24
+      android armv7 24:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 24
+      android armv8 24:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 24
+      android x86 26:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 26
+      android x86_64 26:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 26
+      android armv7 26:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 26
+      android armv8 26:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 26
+      android x86 27:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 27
+      android x86_64 27:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 27
+      android armv7 27:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 27
+      android armv8 27:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 27
+      android x86 28:
+        CONAN_ARCHS: x86
+        ANDROID_API_LEVEL: 28
+      android x86_64 28:
+        CONAN_ARCHS: x86_64
+        ANDROID_API_LEVEL: 28
+      android armv7 28:
+        CONAN_ARCHS: armv7
+        ANDROID_API_LEVEL: 28
+      android armv8 28:
+        CONAN_ARCHS: armv8
+        ANDROID_API_LEVEL: 28

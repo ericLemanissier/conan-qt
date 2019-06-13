@@ -1,0 +1,53 @@
+From 82a4e39142ee21d82b329ade40315a1d2473dc1f Mon Sep 17 00:00:00 2001
+From: Eric Lemanissier <eric.lemanissier@gmail.com>
+Date: Sat, 13 Jul 2019 08:17:53 +0200
+Subject: [PATCH] Android: fix compilation when overriding QMAKE_LINK
+
+QMAKE_LINK should only represent the linker
+All flags must be set in QMAKE_LFLAGS, not in QMAKE_LINK
+
+Change-Id: I6efdef2f75ed09ea2ee5dc494fb0e6e09d462ecb
+---
+ mkspecs/android-clang/qmake.conf      | 5 +++--
+ mkspecs/common/android-base-tail.conf | 2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/mkspecs/android-clang/qmake.conf b/mkspecs/android-clang/qmake.conf
+index 8569c08348..04ea235445 100644
+--- a/mkspecs/android-clang/qmake.conf
++++ b/mkspecs/android-clang/qmake.conf
+@@ -13,6 +13,7 @@ include(../common/android-base-head.conf)
+ NDK_LLVM_PATH = $$NDK_ROOT/toolchains/llvm/prebuilt/$$NDK_HOST
+ QMAKE_CC      = $$NDK_LLVM_PATH/bin/clang
+ QMAKE_CXX     = $$NDK_LLVM_PATH/bin/clang++
++QMAKE_LINK    = $$QMAKE_CXX
+ 
+ equals(ANDROID_TARGET_ARCH, armeabi-v7a): \
+     QMAKE_CFLAGS += -target armv7-none-linux-androideabi
+@@ -27,8 +28,8 @@ else: equals(ANDROID_TARGET_ARCH, x86_64): \
+ 
+ QMAKE_CFLAGS += -gcc-toolchain $$NDK_TOOLCHAIN_PATH -fno-limit-debug-info
+ 
+-QMAKE_LINK    = $$QMAKE_CXX $$QMAKE_CFLAGS -Wl,--exclude-libs,libgcc.a -Wl,--exclude-libs,libatomic.a -nostdlib++
+-equals(ANDROID_TARGET_ARCH, armeabi-v7a): QMAKE_LINK += -Wl,--exclude-libs,libunwind.a
++QMAKE_LFLAGS    = $$QMAKE_CFLAGS -Wl,--exclude-libs,libgcc.a -Wl,--exclude-libs,libatomic.a -nostdlib++
++equals(ANDROID_TARGET_ARCH, armeabi-v7a): QMAKE_LFLAGS += -Wl,--exclude-libs,libunwind.a
+ 
+ QMAKE_CFLAGS += -DANDROID_HAS_WSTRING --sysroot=$$NDK_ROOT/sysroot \
+                 -isystem $$NDK_ROOT/sysroot/usr/include/$$NDK_TOOLS_PREFIX \
+diff --git a/mkspecs/common/android-base-tail.conf b/mkspecs/common/android-base-tail.conf
+index edc255d08e..86d68fdb0b 100644
+--- a/mkspecs/common/android-base-tail.conf
++++ b/mkspecs/common/android-base-tail.conf
+@@ -68,7 +68,7 @@ QMAKE_INCDIR_OPENGL     =
+ QMAKE_LIBDIR_OPENGL     =
+ 
+ QMAKE_LINK_SHLIB        = $$QMAKE_LINK
+-QMAKE_LFLAGS            = --sysroot=$$ANDROID_PLATFORM_ROOT_PATH
++QMAKE_LFLAGS            += --sysroot=$$ANDROID_PLATFORM_ROOT_PATH
+ equals(ANDROID_TARGET_ARCH, x86_64) QMAKE_LFLAGS += -L$$ANDROID_PLATFORM_ROOT_PATH/usr/lib64
+ QMAKE_LFLAGS_APP        = -Wl,--no-undefined -Wl,-z,noexecstack -shared
+ QMAKE_LFLAGS_SHLIB      = -Wl,--no-undefined -Wl,-z,noexecstack -shared
+-- 
+2.20.1.windows.1
+

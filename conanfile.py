@@ -176,8 +176,11 @@ class QtConan(ConanFile):
         if self.settings.os != "Linux":
             self.options.with_libalsa = False
 
-        if self.settings.os == "Android" and self.options.opengl == "desktop":
-            raise ConanInvalidConfiguration("OpenGL desktop is not supported on Android. Consider using OpenGL es2")
+        if self.settings.os == "Android":
+            if self.options.opengl == "desktop":
+                raise ConanInvalidConfiguration("OpenGL desktop is not supported on Android. Consider using OpenGL es2")
+            if not self.options.shared:
+                raise ConanInvalidConfiguration("static builds are not supported on Android, see QTBUG-32618")
 
         if self.settings.os == "Macos":
             del self.settings.os.version
@@ -252,7 +255,7 @@ class QtConan(ConanFile):
                 self.requires("xkbcommon/0.8.3@bincrafters/stable")
 
     def system_requirements(self):
-        if self.options.GUI:
+        if self.options.GUI and self.settings.os != "Android":
             pack_names = []
             if tools.os_info.is_linux:
                 if tools.os_info.with_apt:
@@ -287,6 +290,9 @@ class QtConan(ConanFile):
         else:  # python 2 cannot deal with .xz archives
             self.run("wget -qO- %s.tar.xz | tar -xJ " % url)
         shutil.move("qt-everywhere-src-%s" % self.version, "qt5")
+
+        for patch in ["0676645.diff", "82a4e39.diff"]:
+            tools.patch("qt5/qtbase", patch)
 
     def _xplatform(self):
         if self.settings.os == "Linux":
@@ -488,6 +494,8 @@ class QtConan(ConanFile):
                                            "x86_64": "x86_64",
                                            "mips": "mips",
                                            "mips64": "mips64"}.get(str(self.settings.arch))]
+            args.append("-android-sdk %s" % os.getenv('ANDROID_SDK_ROOT'))
+            args.append("-android-ndk %s" % os.getenv('ANDROID_NDK_HOME'))
             # args += ["-android-toolchain-version %s" % self.settings.compiler.version]
 
         if self.options.device:
@@ -498,7 +506,7 @@ class QtConan(ConanFile):
             xplatform_val = self._xplatform()
             if xplatform_val:
                 if (not tools.cross_building(self.settings)) or\
-                        (self.settings.os_build == self.settings.os and\
+                        (str(self.settings.os_build) == str(self.settings.os) and\
                          self.settings.arch_build == "x86_64" and self.settings.arch == "x86"):
                     args += ["-platform %s" % xplatform_val]
                 else:
