@@ -24,8 +24,6 @@ jobs:
         env:
             CONAN_BUILD_TYPES: ${{matrix.buildType}}
             MINGW_CONFIGURATIONS: ${{matrix.mingwVersion}}@${{matrix.arch}}@${{matrix.exceptions}}@${{matrix.threads}}
-            CONAN_BUILD_REQUIRES: "msys2/20161025"
-            CONAN_OPTIONS: "harfbuzz:with_glib=False"
             CONAN_BUILD_POLICY: "outdated"
         run: |
             python build.py
