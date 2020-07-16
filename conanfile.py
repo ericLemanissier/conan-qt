@@ -639,7 +639,9 @@ class QtConan(ConanFile):
         with tools.vcvars(self.settings) if self.settings.compiler == "Visual Studio" else tools.no_op():
             build_env = {"MAKEFLAGS": "j%d" % tools.cpu_count(), "PKG_CONFIG_PATH": [os.getcwd()]}
             if self.settings.os == "Windows":
-                build_env["PATH"] = [os.path.join(self.source_folder, "qt5", "gnuwin32", "bin")]
+                new_path = [p for p in os.getenv('PATH').split(os.path.pathsep) if not "chocolatey" in p.lower()]
+                new_path.insert(0, os.path.join(self.source_folder, "qt5", "gnuwin32", "bin"))
+                build_env["PATH"] = os.path.pathsep.join(new_path)
             with tools.environment_append(build_env):
                 self.run("%s/qt5/configure %s" % (self.source_folder, " ".join(args)), run_environment=True)
                 if tools.os_info.is_macos:
