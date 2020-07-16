@@ -1,0 +1,17 @@
+on: [push, pull_request]
+
+jobs:
+  webengine:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: install
+        run: |
+            pip install bincrafters_package_tools
+      - name: run  
+        env:
+            CONAN_BUILD_TYPES: Release
+            CONAN_OPTIONS: "harfbuzz:with_glib=False,qt:qtwebengine=True,qt:shared=True"
+            CONAN_VISUAL_VERSIONS: 16
+        run: |
+            bincrafters-package-tools --auto

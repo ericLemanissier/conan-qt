@@ -648,6 +648,8 @@ class QtConan(ConanFile):
                 with tools.environment_append({
                     "BASH_ENV": os.path.abspath("bash_env")
                     }) if tools.os_info.is_macos else tools.no_op():
+                    if self.settings.os == "Windows":
+                        self.run("where python*", run_environment=True)
                     self.run(self._make_program(), run_environment=True)
 
     def package(self):
